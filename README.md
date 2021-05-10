@@ -5,3 +5,5 @@ It it a driver that can be used with OpenHD in order to not only stream the ther
 but also get temperature data, and switch the colormaps with rc channels.
 
 ![opencv output](docs/opencv-output.png)
+
+This project uses the ht301_hacklib library from stawel: https://github.com/stawel/ht301_hacklib
