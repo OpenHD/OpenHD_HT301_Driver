@@ -1,0 +1,7 @@
+Fix mavlink communication to read rc channel values to switch colormaps
+
+Fix Image compression to better read text
+
+Add pixel calibration to compensate false readings
+
+Add Flir DDE algrorithm as colormap
