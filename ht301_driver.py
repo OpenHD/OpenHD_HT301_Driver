@@ -29,8 +29,8 @@ VIDEO_IN = "/dev/video0"
 VIDEO_OUT = "/dev/video5"
 VID_WIDTH = 384
 VID_HEIGHT = 288
-flipped_camera = True
 
+flipped_camera = True
 draw_temp = True
 
 colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, cv2.COLORMAP_INFERNO, cv2.COLORMAP_JET] # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
@@ -49,9 +49,12 @@ def cyclecolormaps():
 def main():
 
     ########### camera #############
-    cap = ht301_hacklib.HT301() # create camera object. initial calibration will be executed by constructor
-
-    videooutput = os.open(VIDEO_OUT, os.O_RDWR) # open v4l2 output device
+    
+    # create camera object. initial calibration will be executed by constructor
+    cap = ht301_hacklib.HT301()
+    
+    # open v4l2 output device
+    videooutput = os.open(VIDEO_OUT, os.O_RDWR)
 
     # configure params for output device
     vid_format = v4l2_format()
@@ -91,16 +94,17 @@ def main():
         info, lut = cap.info() # get hottest and coldest spot and its temperatures
 
         if selectedmap != 0: # do not apply anything when 0 is selected. original frame
-            frame = frame.astype(np.float32)
             # sketchy auto-exposure
+            frame = frame.astype(np.float32)
             #frame = 255*(frame - frame.min())/(frame.max()-frame.min()).astype(np.uint8)
             frame -= frame.min()
             frame /= frame.max()
             frame = (np.clip(frame, 0, 1)*255).astype(np.uint8)
+            
             # apply colormap
             frame = cv2.applyColorMap(frame, colormaps[selectedmap])
 
-        if flipped_camera: # rotate the temperature points if the thermal camera is mounted upside down
+        if flipped_camera: # rotate the temperature points with the image if the thermal camera is mounted upside down
             (coldx, coldy) = info['Tmin_point']
             (warmx, warmy) = info['Tmax_point']
             coldestpoint = (VID_WIDTH - coldx, VID_HEIGHT - coldy)
