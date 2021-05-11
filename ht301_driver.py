@@ -21,7 +21,7 @@ from v4l2 import (
 ########### init ###########
 ##vehicle = connect("tcp://localhost:5761", wait_ready=False) #address of the openhd mavlink router
 
-rc_channel = '8' # aux channel 4 = channel 8
+rc_channel = '8' # aux channel 4 = channel 8, for cycle colormaps
 ch_state = False
 prev_ch_state = False
 
@@ -29,6 +29,7 @@ VIDEO_IN = "/dev/video0"
 VIDEO_OUT = "/dev/video5"
 VID_WIDTH = 384
 VID_HEIGHT = 288
+flipped_camera = True
 
 draw_temp = True
 
@@ -63,9 +64,7 @@ def main():
     vid_format.fmt.pix.width = VID_WIDTH
     vid_format.fmt.pix.height = VID_HEIGHT
 
-    # NOTE: change this according to below filters...
-    # Chose one from the supported formats on Chrome: YUV420, Y16, Z16, INVZ,
-    # YUYV, RGB24, MJPEG, JPEG
+    # pixel format
     vid_format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24
     vid_format.fmt.pix.sizeimage = framesize
     vid_format.fmt.pix.field = V4L2_FIELD_NONE
@@ -88,25 +87,29 @@ def main():
 
 
         ret, frame = cap.read() # read frame from thermal camera
+        orig_frame = frame
         info, lut = cap.info() # get hottest and coldest spot and its temperatures
-        frame = frame.astype(np.float32)
 
         if selectedmap != 0: # do not apply anything when 0 is selected. original frame
-            # Sketchy auto-exposure
+            frame = frame.astype(np.float32)
+            # sketchy auto-exposure
             #frame = 255*(frame - frame.min())/(frame.max()-frame.min()).astype(np.uint8)
             frame -= frame.min()
             frame /= frame.max()
             frame = (np.clip(frame, 0, 1)*255).astype(np.uint8)
+            # apply colormap
+            frame = cv2.applyColorMap(frame, colormaps[selectedmap])
+
+        if flipped_camera: # rotate the temperature points if the thermal camera is mounted upside down
+            (coldx, coldy) = info['Tmin_point']
+            (warmx, warmy) = info['Tmax_point']
+            coldestpoint = (VID_WIDTH - coldx, VID_HEIGHT - coldy)
+            warmestpoint = (VID_WIDTH - warmx, VID_HEIGHT - warmy)
             
-            frame = cv2.applyColorMap(frame, colormaps[selectedmap]) # apply colormap
-
-        # rotate the temperature points with the image
-        (coldx, coldy) = info['Tmin_point']
-        (warmx, warmy) = info['Tmax_point']
-        coldestpoint = (VID_WIDTH - coldx, VID_HEIGHT - coldy)
-        warmestpoint = (VID_WIDTH - warmx, VID_HEIGHT - warmy)
-
-        frame = cv2.flip(frame, -1)
+            frame = cv2.flip(frame, -1) #flip the frame
+        else:
+            coldestpoint = info['Tmin_point']
+            warmestpoint = info['Tmax_point']
 
         if draw_temp:
             utils.drawTemperature(frame, coldestpoint, info['Tmin_C'], (0,0,255)) # coldest spot
