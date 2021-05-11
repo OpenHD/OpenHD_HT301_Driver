@@ -48,7 +48,7 @@ def cyclecolormaps():
 def main():
 
     ########### camera #############
-    cap = ht301_hacklib.HT301() # create camera object. initial calibration will be executed by contructor
+    cap = ht301_hacklib.HT301() # create camera object. initial calibration will be executed by constructor
 
     videooutput = os.open(VIDEO_OUT, os.O_RDWR) # open v4l2 output device
 
@@ -93,9 +93,11 @@ def main():
 
         if selectedmap != 0: # do not apply anything when 0 is selected. original frame
             # Sketchy auto-exposure
+            #frame = 255*(frame - frame.min())/(frame.max()-frame.min()).astype(np.uint8)
             frame -= frame.min()
             frame /= frame.max()
             frame = (np.clip(frame, 0, 1)*255).astype(np.uint8)
+            
             frame = cv2.applyColorMap(frame, colormaps[selectedmap]) # apply colormap
 
         # rotate the temperature points with the image
@@ -109,7 +111,7 @@ def main():
         if draw_temp:
             utils.drawTemperature(frame, coldestpoint, info['Tmin_C'], (0,0,255)) # coldest spot
             utils.drawTemperature(frame, warmestpoint, info['Tmax_C'], (255,0,0)) # hottest spot
-            #utils.drawTemperature(frame, info['Tcenter_point'], info['Tcenter_C'], (0,255,255)) # center spot
+            #utils.drawTemperature(frame, info['Tcenter_point'], info['Tcenter_C'], (255,255,0)) # center spot
 
         # write frame to output device
         written = os.write(videooutput, frame.data)
