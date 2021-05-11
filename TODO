@@ -1,3 +1,5 @@
+Fix inverted colormaps
+
 Fix mavlink communication to read rc channel values to switch colormaps
 
 Fix Image compression to better read text
