@@ -7,3 +7,88 @@ but also show temperature data, and switch the colormaps with rc channels.
 ![OpenHD Stream](stream.jpg)
 
 This project uses the ht301_hacklib library from stawel: https://github.com/stawel/ht301_hacklib
+
+## Installation
+Connect the AirPi via Ethernet to the Internet. Then you can connect to the Airpi via SSH.
+
+First of all we need another v4l2loopback device.
+To register this device on boot add the following line to /etc/modules:
+```
+v4l2loopback
+```
+
+and create the file /etc/modprobe.d/v4l2loopback.conf and add:
+```
+options v4l2loopback devices=1 exclusive_caps=1 video_nr=5 card_label="OpenCV-Output"
+```
+
+After that you update the modules:
+```
+sudo update-initramfs -c -k $(uname -r)
+```
+
+Reboot the AirPi and check if the virtual video device was created:
+```
+v4l2-ctl --list-devices
+```
+
+### Dependencies
+For the driver to work it is necessary to install the required python modules.
+But there is a problem with pip. Because pip will download and unpack the packages in the /tmp partition and the /tmp partition has not enough space for this,
+we need to add a folder to the big root partition in order to use it as a temporary tmp folder just for this single pip installation:
+Make sure you expanded the Filesystem first:
+```
+sudo raspi-config --expand-rootfs
+```
+Then reboot.
+
+Create a folder in /
+```
+sudo mkdir /tmptmp
+```
+Then you can install the modules with pip3 (it will not work with "pip" because of python2)
+```
+TMPDIR=/tmptmp pip3 install numpy opencv-python v4l2 dronekit asyncio
+```
+OpenCV also needs the backbone to run, so install these packages too:
+```
+sudo apt-get update -y && sudo apt-get upgrade -y
+sudo apt-get install libcblas-dev -y
+sudo apt-get install libhdf5-dev -y
+sudo apt-get install libhdf5-serial-dev -y
+sudo apt-get install libatlas-base-dev -y
+sudo apt-get install libjasper-dev  -y
+sudo apt-get install libqtgui4  -y
+sudo apt-get install libqt4-test -y
+```
+Because of an incompatibility issue on v4l2 with python3 you maybe need
+to edit the lines **197** and **248** of the file /usr/local/lib/python3.7/dist-packages/v4l2.py
+```
+sudo nano +197 /usr/local/lib/python3.7/dist-packages/v4l2.py
+```
+and change
+```
+range(1, 10) + [0x80]
+```
+to
+```
+list(range(1, 10)) + [0x80]
+```
+
+### Driver files
+Then you can put the necessary files to e.g. /home/pi
+```
+git clone https://github.com/MCMH2000/OpenHD_HT301_Driver
+```
+
+### Registerdriver as service on boot
+coming soon...
+
+### OpenHD config
+Finally to stream the driver output via OpenHD you just have to edit your openhd-settings-1.txt
+and change the gstreamer line for the ht301 to:
+```
+gstreamer
+```
+
+After reboot you can then see your processed thermal image on the GroundPi.
