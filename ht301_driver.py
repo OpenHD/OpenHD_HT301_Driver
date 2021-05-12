@@ -35,8 +35,11 @@ flipped_camera = True
 draw_temp = True
 
 # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, cv2.COLORMAP_INFERNO, cv2.COLORMAP_JET] # add -1 for flir dde algorithm
+colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, cv2.COLORMAP_INFERNO, cv2.COLORMAP_JET] # add -1 for dde algorithm
 selectedmap = 1 # selected map on startup. default is 0
+
+# create a Contrast Limited Adaptive Histogram Equalization object.
+clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(4,4))
 
 ############################
 
@@ -103,8 +106,9 @@ def main():
             frame = (np.clip(frame, 0, 1)*255).astype(np.uint8) # deprecated
 
             if colormaps[selectedmap] == -1:
-                # flir dde algorithm implementation
+                # dde algorithm implementation
                 # coming soon...
+                #frame = clahe.apply(frame)
             else:
                 # apply colormap
                 #frame = (255-frame) # invert range if colormap is inverted
