@@ -19,7 +19,8 @@ from v4l2 import (
 )
 
 ########### init ###########
-##vehicle = connect("tcp://localhost:5761", wait_ready=False) #address of the openhd mavlink router
+
+#vehicle = connect("tcp://localhost:5761", wait_ready=False) # address of the openhd mavlink router
 
 rc_channel = '8' # aux channel 4 = channel 8, for cycle colormaps
 ch_state = False
@@ -33,7 +34,8 @@ VID_HEIGHT = 288
 flipped_camera = True
 draw_temp = True
 
-colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, cv2.COLORMAP_INFERNO, cv2.COLORMAP_JET] # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
+# list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
+colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, cv2.COLORMAP_INFERNO, cv2.COLORMAP_JET] # add -1 for flir dde algorithm
 selectedmap = 1 # selected map on startup. default is 0
 
 ############################
@@ -45,7 +47,6 @@ def cyclecolormaps():
     else:
         selectedmap = 0
 
-# main
 def main():
 
     ########### camera #############
@@ -80,13 +81,13 @@ def main():
 
     while(True):
         # cycle only one map per button press
-        ##if vehicle.channels[rc_channel] > 1800:
-        ##    ch_state = True
-        ##    if prev_ch_state == False:
-        ##        cyclecolormaps()
-        ##else:
-        ##    ch_state = False
-        ##prev_ch_state = ch_state
+        #if vehicle.channels[rc_channel] > 1800:
+        #    ch_state = True
+        #    if prev_ch_state == False:
+        #        cyclecolormaps()
+        #else:
+        #    ch_state = False
+        #prev_ch_state = ch_state
 
 
         ret, frame = cap.read() # read frame from thermal camera
@@ -99,10 +100,15 @@ def main():
             #frame = 255*(frame - frame.min())/(frame.max()-frame.min()).astype(np.uint8)
             frame -= frame.min()
             frame /= frame.max()
-            frame = (np.clip(frame, 0, 1)*255).astype(np.uint8)
-            
-            # apply colormap
-            frame = cv2.applyColorMap(frame, colormaps[selectedmap])
+            frame = (np.clip(frame, 0, 1)*255).astype(np.uint8) # deprecated
+
+            if colormaps[selectedmap] == -1:
+                # flir dde algorithm implementation
+                # coming soon...
+            else:
+                # apply colormap
+                #frame = (255-frame) # invert range if colormap is inverted
+                frame = cv2.applyColorMap(frame, colormaps[selectedmap])
 
         if flipped_camera: # rotate the temperature points with the image if the thermal camera is mounted upside down
             (coldx, coldy) = info['Tmin_point']
@@ -110,7 +116,7 @@ def main():
             coldestpoint = (VID_WIDTH - coldx, VID_HEIGHT - coldy)
             warmestpoint = (VID_WIDTH - warmx, VID_HEIGHT - warmy)
             
-            frame = cv2.flip(frame, -1) #flip the frame
+            frame = cv2.flip(frame, -1) # flip the frame
         else:
             coldestpoint = info['Tmin_point']
             warmestpoint = info['Tmax_point']
@@ -124,7 +130,7 @@ def main():
         written = os.write(videooutput, frame.data)
 
     cap.release()
-    ##vehicle.close()
+    #vehicle.close()
     return 0
 
 if __name__ == "__main__":
