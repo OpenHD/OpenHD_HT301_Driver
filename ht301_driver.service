@@ -1,7 +1,7 @@
 [Unit]
 Description=HT301 Driver
 After=multi-user.target
-Conflicts=getty@tty1.service
+Conflicts=getty@tty6.service
 
 [Service]
 Type=simple
