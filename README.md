@@ -64,6 +64,7 @@ apt-get install libatlas-base-dev -y
 apt-get install libjasper-dev  -y
 apt-get install libqtgui4  -y
 apt-get install libqt4-test -y
+apt-get install git
 ```
 Because of an incompatibility issue on v4l2 with python3 you maybe need
 to edit the lines **197** and **248** of the file /usr/local/lib/python3.7/dist-packages/v4l2.py
@@ -77,13 +78,27 @@ list(range(1, 10)) + [0x80]
 ```
 
 ## Driver files
-Then you can put the necessary files to e.g. /home/pi
+Then you can put the necessary files to /home/pi:
 ```
 git clone https://github.com/MCMH2000/OpenHD_HT301_Driver
 ```
 
 ## Register driver as service on boot
-coming soon...
+copy the ht301_driver.service file to /lib/systemd/system:
+```
+cp ./ht301_driver.service /lib/systemd/system/ht301_driver.service
+```
+Then set the necessary permissions and make the driver executable:
+```
+chmod 644 /lib/systemd/system/ht301_driver.service
+chmod +x /home/pi/OpenHD_HT301_Driver/ht301_driver.py
+```
+Then enable and start the new service:
+```
+systemctl daemon-reload
+systemctl enable ht301_driver.service
+systemctl start ht301_driver.service
+```
 
 ## OpenHD config
 Finally to stream the driver output via OpenHD you just have to edit your openhd-settings-1.txt
