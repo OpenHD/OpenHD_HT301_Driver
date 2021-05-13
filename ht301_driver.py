@@ -33,13 +33,14 @@ VID_HEIGHT = 288
 
 flipped_camera = True
 draw_temp = True
+calibration_offset = True
 
 # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, cv2.COLORMAP_INFERNO, cv2.COLORMAP_JET] # add -1 for dde algorithm
-selectedmap = 1 # selected map on startup. default is 0
+colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, cv2.COLORMAP_TURBO] # add -1 for dde algorithm
+selectedmap = 2 # selected map on startup. default is 0
 
 # create a Contrast Limited Adaptive Histogram Equalization object.
-clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(4,4))
+clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(10,10))
 
 ############################
 
@@ -53,10 +54,10 @@ def cyclecolormaps():
 def main():
 
     ########### camera #############
-    
+
     # create camera object. initial calibration will be executed by constructor
     cap = ht301_hacklib.HT301()
-    
+
     # open v4l2 output device
     videooutput = os.open(VIDEO_OUT, os.O_RDWR)
 
@@ -82,6 +83,9 @@ def main():
 
     ################################
 
+    # read calibration array from file
+    offset = np.load("noise_pattern_calibration.npy")
+
     while(True):
         # cycle only one map per button press
         #if vehicle.channels[rc_channel] > 1800:
@@ -100,26 +104,28 @@ def main():
         if selectedmap != 0: # do not apply anything when 0 is selected. original frame
             # sketchy auto-exposure
             frame = frame.astype(np.float32)
-            #frame = 255*(frame - frame.min())/(frame.max()-frame.min()).astype(np.uint8)
-            frame -= frame.min()
-            frame /= frame.max()
-            frame = (np.clip(frame, 0, 1)*255).astype(np.uint8) # deprecated
+            if calibration_offset == True:
+                frame = frame - offset + np.mean(offset)
+            frame = 255*(frame - frame.min())/(frame.max()-frame.min()) # todo: better detail consideration wothout clipping extreme values see next line
+            frame = np.clip(frame, 0, 255).astype(np.uint8)
 
             if colormaps[selectedmap] == -1:
                 # dde algorithm implementation
-                # coming soon...
-                #frame = clahe.apply(frame)
+                framebuffer = frame #buffer
+                clahe.apply(framebuffer, frame)
+                #frame = (255-frame) # invert range if colormap is inverted
+                frame = cv2.applyColorMap(frame, colormaps[1])
+
             else:
                 # apply colormap
                 #frame = (255-frame) # invert range if colormap is inverted
                 frame = cv2.applyColorMap(frame, colormaps[selectedmap])
 
-        if flipped_camera: # rotate the temperature points with the image if the thermal camera is mounted upside down
+        if flipped_camera == True: # rotate the temperature points with the image if the thermal camera is mounted upside down
             (coldx, coldy) = info['Tmin_point']
             (warmx, warmy) = info['Tmax_point']
             coldestpoint = (VID_WIDTH - coldx, VID_HEIGHT - coldy)
             warmestpoint = (VID_WIDTH - warmx, VID_HEIGHT - warmy)
-            
             frame = cv2.flip(frame, -1) # flip the frame
         else:
             coldestpoint = info['Tmin_point']
@@ -139,5 +145,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
