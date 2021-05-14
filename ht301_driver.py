@@ -20,7 +20,7 @@ from v4l2 import (
 
 ########### init ###########
 
-#vehicle = connect("tcp://localhost:5761", wait_ready=False) # address of the openhd mavlink router
+#vehicle = connect("/dev/openhd_microservice1", wait_ready=True, baud=115200) # address of the openhd mavlink router
 
 rc_channel = '8' # aux channel 4 = channel 8, for cycle colormaps
 ch_state = False
@@ -58,8 +58,8 @@ def main():
     # read calibration array from file
     offset = np.load("noise_pattern_calibration.npy")
 
-    # create a Contrast Limited Adaptive Histogram Equalization object.
-    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
+    # create a Contrast Limited Adaptive Histogram Equalization object. default: 5.0, (6, 6)
+    clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(6, 6))
 
     # open v4l2 output device
     videooutput = os.open(VIDEO_OUT, os.O_RDWR)
@@ -106,7 +106,6 @@ def main():
             if calibration_offset == True: # apply calibration offset
                 frame = frame - offset + np.mean(offset)
             frame = (255*((frame - frame.min())/(frame.max()-frame.min()))).astype(np.uint8) # cast frame to values from 0 to 255
-            #frame = np.clip(frame, 0, 255).astype(np.uint8)
 
             if colormaps[selectedmap] == -1:
                 # digital detail enhancement algorithm
@@ -127,10 +126,10 @@ def main():
             coldestpoint = info['Tmin_point']
             warmestpoint = info['Tmax_point']
 
-        if draw_temp:
-            utils.drawTemperature(frame, coldestpoint, info['Tmin_C'], (0,0,255)) # coldest spot
-            utils.drawTemperature(frame, warmestpoint, info['Tmax_C'], (255,0,0)) # hottest spot
-            #utils.drawTemperature(frame, info['Tcenter_point'], info['Tcenter_C'], (255,255,0)) # center spot
+        if draw_temp: # color: BGR
+            utils.drawTemperature(frame, coldestpoint, info['Tmin_C'], (255, 0, 0)) # coldest spot
+            utils.drawTemperature(frame, warmestpoint, info['Tmax_C'], (0, 0, 255)) # hottest spot
+            #utils.drawTemperature(frame, info['Tcenter_point'], info['Tcenter_C'], (0, 255, 255)) # center spot
 
         # output
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert opencv bgr to rgb for the v4l2 pixelformat
