@@ -4,7 +4,7 @@ HT-301 thermal camera driver based on Python and OpenCV.
 It is a driver that can be used with OpenHD in order to not only stream the thermal camera feed,
 but also show temperature data, and switch the colormaps with rc channels.
 
-![OpenHD Stream](stream.jpg)
+![OpenHD Stream](example.png)
 
 This project uses the ht301_hacklib library from stawel: https://github.com/stawel/ht301_hacklib
 
