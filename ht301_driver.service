@@ -1,13 +1,11 @@
 [Unit]
 Description=HT301 Driver
 After=multi-user.target
-Conflicts=getty@tty6.service
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 /home/pi/OpenHD_HT301_Driver/ht301_driver.py
 Restart=on-failure
-StandardInput=tty-force
 
 [Install]
 WantedBy=multi-user.target
