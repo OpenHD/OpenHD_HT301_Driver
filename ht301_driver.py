@@ -10,7 +10,7 @@ import os
 import sys
 import cv2
 import fcntl
-#import asyncio
+import asyncio
 #from mavsdk import System
 from dronekit import connect
 from v4l2 import (
@@ -20,9 +20,9 @@ from v4l2 import (
 
 ########### init ###########
 
-#vehicle = connect("/dev/openhd_microservice1", wait_ready=True, baud=115200) # address of the openhd mavlink router
+vehicle = connect("/dev/ttyAMA0", wait_ready=False, baud=115200) # serial connection to FC
 
-rc_channel = '8' # aux channel 4 = channel 8, for cycle colormaps
+rc_channel = 800 # aux channel 4 = channel 8, for cycle colormaps
 ch_state = False
 prev_ch_state = False
 
@@ -31,22 +31,32 @@ VIDEO_OUT = "/dev/video5"
 VID_WIDTH = 384
 VID_HEIGHT = 288
 
+# list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
+colormaps = [cv2.COLORMAP_BONE, -1, cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, -1, cv2.COLORMAP_TURBO, -1] # add -1 for dde algorithm
+selectedmap = 0 # selected map on startup. default is 0
+#colormap_for_dde = colormaps[1]
+
 flipped_camera = True
 draw_temp = True
 calibration_offset = True
-
-# list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-colormaps = [cv2.COLORMAP_BONE, cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, cv2.COLORMAP_TURBO] # add -1 for dde algorithm
-selectedmap = 1 # selected map on startup. default is 0
 
 ############################
 
 # cycle colormaps
 def cyclecolormaps():
+    global selectedmap
     if selectedmap < len(colormaps) - 1:
         selectedmap += 1
     else:
         selectedmap = 0
+    print("Switching to colormap: ", selectedmap + 1)
+
+def channel_listener(self, name, message):
+    global rc_channel
+    rc_channel = message.chan8_raw
+
+vehicle.add_message_listener('RC_CHANNELS', channel_listener)
+
 
 def main():
 
@@ -89,32 +99,30 @@ def main():
     # video loop
     while(True):
         # cycle only one map per button press
-        #if vehicle.channels[rc_channel] > 1800:
-        #    ch_state = True
-        #    if prev_ch_state == False:
-        #        cyclecolormaps()
-        #else:
-        #    ch_state = False
-        #prev_ch_state = ch_state
+        if rc_channel > 1800:
+            ch_state = True
+            if prev_ch_state == False:
+                cyclecolormaps()
+        else:
+            ch_state = False
+        prev_ch_state = ch_state
 
         ret, frame = cap.read() # read frame from thermal camera
         info, lut = cap.info() # get hottest and coldest spot and its temperatures
 
-        if selectedmap != 0: # do not apply anything when 0 is selected. original frame
-            # automatic gain control
-            frame = frame.astype(np.float32)
-            if calibration_offset == True: # apply calibration offset
-                frame = frame - offset + np.mean(offset)
-            frame = (255*((frame - frame.min())/(frame.max()-frame.min()))).astype(np.uint8) # cast frame to values from 0 to 255
-
-            if colormaps[selectedmap] == -1:
-                # digital detail enhancement algorithm
-                framebuffer = frame
-                clahe.apply(framebuffer, frame)
-                frame = cv2.applyColorMap(frame, colormaps[1])
-            else:
-                # apply colormap
-                frame = cv2.applyColorMap(frame, colormaps[selectedmap])
+        # automatic gain control
+        frame = frame.astype(np.float32)
+        if calibration_offset == True: # apply calibration offset
+            frame = frame - offset + np.mean(offset)
+        frame = (255*((frame - frame.min())/(frame.max()-frame.min()))).astype(np.uint8) # cast frame to values from 0 to 255
+        if colormaps[selectedmap] == -1:
+            # digital detail enhancement algorithm
+            framebuffer = frame
+            clahe.apply(framebuffer, frame)
+            frame = cv2.applyColorMap(frame, colormaps[selectedmap - 1])
+        else:
+            # apply colormap
+            frame = cv2.applyColorMap(frame, colormaps[selectedmap])
 
         if flipped_camera == True: # rotate the temperature points with the image if the thermal camera is mounted upside down
             (coldx, coldy) = info['Tmin_point']
@@ -127,8 +135,8 @@ def main():
             warmestpoint = info['Tmax_point']
 
         if draw_temp: # color: BGR
-            utils.drawTemperature(frame, coldestpoint, info['Tmin_C'], (255, 0, 0)) # coldest spot
-            utils.drawTemperature(frame, warmestpoint, info['Tmax_C'], (0, 0, 255)) # hottest spot
+            utils.drawTemperature(frame, coldestpoint, info['Tmin_C'], (200, 200, 200)) # coldest spot
+            utils.drawTemperature(frame, warmestpoint, info['Tmax_C'], (30, 30, 30)) # hottest spot
             #utils.drawTemperature(frame, info['Tcenter_point'], info['Tcenter_C'], (0, 255, 255)) # center spot
 
         # output
@@ -136,7 +144,7 @@ def main():
         written = os.write(videooutput, frame.data) # write frame to output device
 
     cap.release()
-    #vehicle.close()
+    vehicle.close()
     return 0
 
 if __name__ == "__main__":
