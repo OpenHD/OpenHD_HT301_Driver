@@ -32,7 +32,7 @@ VID_WIDTH = 384
 VID_HEIGHT = 288
 
 # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
-colormaps = [cv2.COLORMAP_BONE, -1, cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, -1, cv2.COLORMAP_TURBO, -1] # add -1 for dde algorithm
+colormaps = [cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, -1, cv2.COLORMAP_TURBO, -1] # add -1 for dde algorithm
 selectedmap = 0 # selected map on startup. default is 0
 #colormap_for_dde = colormaps[1]
 
