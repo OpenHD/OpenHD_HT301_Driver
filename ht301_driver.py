@@ -10,6 +10,7 @@ import os
 import sys
 import cv2
 import fcntl
+import threading
 from dronekit import connect
 from v4l2 import (
     v4l2_format, VIDIOC_G_FMT, V4L2_BUF_TYPE_VIDEO_OUTPUT, V4L2_PIX_FMT_RGB24,
@@ -17,16 +18,11 @@ from v4l2 import (
 )
 
 ########### init ###########
-mavlink = True
-try:
-    vehicle = connect("/dev/serial0", wait_ready=False, baud=115200) # serial connection to FC
-except Exception as e:
-    print(e)
-    mavlink = False
 
 rc_channel = 800 # aux channel 4 = channel 8, for cycle colormaps
 ch_state = False
 prev_ch_state = False
+mavlink = False
 
 VIDEO_IN = "/dev/video0"
 VIDEO_OUT = "/dev/video5"
@@ -36,7 +32,6 @@ VID_HEIGHT = 288
 # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
 colormaps = [cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, -1, cv2.COLORMAP_TURBO, -1] # add -1 for dde algorithm
 selectedmap = 0 # selected map on startup. default is 0
-#colormap_for_dde = colormaps[1]
 
 flipped_camera = True
 draw_temp = True
@@ -57,8 +52,14 @@ def channel_listener(self, name, message):
     global rc_channel
     rc_channel = message.chan8_raw
 
-if mavlink:
-    vehicle.add_message_listener('RC_CHANNELS', channel_listener)
+def mavlink_connect():
+    try:
+        vehicle = connect("/dev/serial0", wait_ready=False, baud=115200) # serial connection to FC
+        vehicle.add_message_listener('RC_CHANNELS', channel_listener)
+        mavlink = True
+    except Exception as e:
+        print(e)
+        mavlink = False
 
 def main():
 
@@ -151,4 +152,9 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # create thread for main loop and mavlink connection loop
+    mainloop = threading.Thread(target=main)
+    mavlinkloop = threading.Thread(target=mavlink_connect)
+    # start threads
+    mainloop.start()
+    mavlinkloop.start()
