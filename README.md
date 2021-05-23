@@ -9,9 +9,13 @@ but also show temperature data, and switch the colormaps with rc channels.
 This project uses the ht301_hacklib library from stawel: https://github.com/stawel/ht301_hacklib
 
 # Installation
-Connect the AirPi via Ethernet to the Internet. Then you can connect to the Airpi via SSH.
+To allow SSH on the AirPi, set the debug variable in the openhd-settings-1.txt to "Y":
+```
+DEBUG=Y
+```
+Connect the AirPi via Ethernet to a Netzwork. After the AirPi got an IP address via DHCP, you can connect to the Airpi via SSH.
 
-To have no problems with the commands switch to root user with:
+To have no problems with the following commands, switch to root user with:
 ```
 sudo -s
 ```
