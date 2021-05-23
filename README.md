@@ -52,7 +52,7 @@ mkdir /tmptmp
 ```
 Then you can install the modules with pip3 (it will not work with "pip" because of python2)
 ```
-TMPDIR=/tmptmp pip3 install numpy opencv-python v4l2 dronekit asyncio pyserial=3.4
+TMPDIR=/tmptmp pip3 install numpy opencv-python v4l2 dronekit asyncio pyserial==3.4
 ```
 OpenCV also needs the backbone to run, so install these packages too:
 ```
