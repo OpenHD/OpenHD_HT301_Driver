@@ -15,7 +15,7 @@ DEBUG=Y
 ```
 Connect the AirPi via ethernet to a network. After the AirPi got an IP address via DHCP, you can connect to the AirPi via SSH.
 
-To have no problems with the following commands, switch to root user with:
+To avoid problems with further commands, switch to root user with:
 ```
 sudo -s
 ```
