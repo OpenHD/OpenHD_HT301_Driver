@@ -70,12 +70,15 @@ def main():
 
     # read calibration array from file
     offset = np.load("noise_pattern_calibration.npy")
+    print("Info: calibration file read")
 
     # create a Contrast Limited Adaptive Histogram Equalization object. default: 5.0, (6, 6)
     clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(6, 6))
+    print("Info: histogram created")
 
     # open v4l2 output device
     videooutput = os.open(VIDEO_OUT, os.O_RDWR)
+    print("Info: v4l2 opened")
 
     # configure parameters for output device
     vid_format = v4l2_format()
@@ -96,6 +99,7 @@ def main():
     if fcntl.ioctl(videooutput, VIDIOC_S_FMT, vid_format) < 0:
         print("ERROR: unable to set video format!")
         return -1
+        print("Info: video format set")
 
     ################################
 
