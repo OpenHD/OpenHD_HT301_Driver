@@ -90,16 +90,19 @@ def main():
     framesize = VID_WIDTH * VID_HEIGHT * 3
     vid_format.fmt.pix.width = VID_WIDTH
     vid_format.fmt.pix.height = VID_HEIGHT
+    print("Info: configure framesize done")
 
     # pixel format
     vid_format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24
     vid_format.fmt.pix.sizeimage = framesize
     vid_format.fmt.pix.field = V4L2_FIELD_NONE
+    print("Info: configure pixelformat done")
 
     if fcntl.ioctl(videooutput, VIDIOC_S_FMT, vid_format) < 0:
         print("ERROR: unable to set video format!")
         return -1
-        print("Info: video format set")
+        
+    print("Info: video format set")
 
     ################################
 
