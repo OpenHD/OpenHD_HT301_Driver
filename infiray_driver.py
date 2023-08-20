@@ -19,15 +19,11 @@ from v4l2 import (
 
 ########### init ###########
 
-rc_channel = 800 # aux channel 4 = channel 8, for cycle colormaps
-ch_state = False
-prev_ch_state = False
-mavlink = False
-
 VIDEO_IN = "/dev/video0"
 VIDEO_OUT = "/dev/video7"
 VID_WIDTH = 256
 VID_HEIGHT = 196
+rc_channel = 800
 
 # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
 colormaps = [cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, -1, cv2.COLORMAP_TURBO, -1] # add -1 for dde algorithm
@@ -47,19 +43,6 @@ def cyclecolormaps():
     else:
         selectedmap = 0
     print("Switching to colormap: ", selectedmap + 1)
-
-def channel_listener(self, name, message):
-    global rc_channel
-    rc_channel = message.chan8_raw
-
-def mavlink_connect():
-    try:
-        vehicle = connect("/dev/serial0", wait_ready=False, baud=115200) # serial connection to FC
-        vehicle.add_message_listener('RC_CHANNELS', channel_listener)
-        mavlink = True
-    except Exception as e:
-        print(e)
-        mavlink = False
 
 def main():
 
@@ -160,14 +143,10 @@ def main():
         written = os.write(videooutput, frame.data) # write frame to output device
 
     cap.release()
-    if mavlink:
-        vehicle.close()
     return 0
 
 if __name__ == "__main__":
     # create thread for main loop and mavlink connection loop
     mainloop = threading.Thread(target=main)
-    mavlinkloop = threading.Thread(target=mavlink_connect)
-    # start threads
+      # start threads
     mainloop.start()
-    mavlinkloop.start()
