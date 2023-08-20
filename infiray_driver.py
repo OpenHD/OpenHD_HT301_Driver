@@ -109,7 +109,7 @@ def main():
     # video loop
     while(True):
 
-    print("Info: main loop begin")
+        print("Info: main loop begin")
 
         # cycle only one map per button press
         if rc_channel > 1800:
