@@ -66,7 +66,7 @@ def main():
     ########### camera #############
 
     # create camera object. initial calibration will be executed by constructor
-    cap = ht301_hacklib.HT301()
+    cap = ht301_hacklib.T2SPLUS()
 
     # read calibration array from file
     offset = np.load("noise_pattern_calibration.npy")
