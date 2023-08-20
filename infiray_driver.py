@@ -108,6 +108,9 @@ def main():
 
     # video loop
     while(True):
+
+    print("Info: main loop begin")
+
         # cycle only one map per button press
         if rc_channel > 1800:
             ch_state = True
@@ -118,7 +121,10 @@ def main():
         prev_ch_state = ch_state
 
         ret, frame = cap.read() # read frame from thermal camera
+        print("Info: read frame")
         info, lut = cap.info() # get hottest and coldest spot and its temperatures
+        print("Info: read temperatures")
+
 
         # automatic gain control
         frame = frame.astype(np.float32)
