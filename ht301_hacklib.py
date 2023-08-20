@@ -333,7 +333,7 @@ class HT301:
     def release(self):
         return self.cap.release()
     
-class T2SPLUS(HT301):
+class HT301:
     FRAME_RAW_WIDTH = 256
     FRAME_RAW_HEIGHT = 196
     FRAME_WIDTH = FRAME_RAW_WIDTH
