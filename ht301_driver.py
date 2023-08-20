@@ -25,9 +25,9 @@ prev_ch_state = False
 mavlink = False
 
 VIDEO_IN = "/dev/video0"
-VIDEO_OUT = "/dev/video5"
-VID_WIDTH = 384
-VID_HEIGHT = 288
+VIDEO_OUT = "/dev/video7"
+VID_WIDTH = 256
+VID_HEIGHT = 192
 
 # list of used colormaps. all available colormaps here: https://docs.opencv.org/master/d3/d50/group__imgproc__colormap.html#ga9a805d8262bcbe273f16be9ea2055a65
 colormaps = [cv2.COLORMAP_PINK, -1, cv2.COLORMAP_INFERNO, -1, cv2.COLORMAP_TURBO, -1] # add -1 for dde algorithm
