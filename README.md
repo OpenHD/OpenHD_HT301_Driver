@@ -3,7 +3,7 @@ HT-301 thermal camera driver based on Python and OpenCV.
 
 It is a driver that can be used with OpenHD in order to not only stream the thermal camera feed,
 but also show temperature data, and switch the colormaps with rc channels.
-
+Check out the wiki!
 ![OpenHD Stream](pictures/example.png)
 
 This project uses the ht301_hacklib library from stawel: https://github.com/stawel/ht301_hacklib
@@ -13,9 +13,9 @@ To allow SSH on the AirPi, set the debug variable in the openhd-settings-1.txt t
 ```
 DEBUG=Y
 ```
-Connect the AirPi via Ethernet to a Netzwork. After the AirPi got an IP address via DHCP, you can connect to the Airpi via SSH.
+Connect the AirPi via ethernet to a network. After the AirPi got an IP address via DHCP, you can connect to the AirPi via SSH.
 
-To have no problems with the following commands, switch to root user with:
+To avoid problems with further commands, switch to root user with:
 ```
 sudo -s
 ```
