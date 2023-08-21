@@ -5,7 +5,7 @@ import ht301_hacklib
 
 
 # create camera object and do a initial calibration
-cap = ht301_hacklib.HT301()
+cap = ht301_hacklib.T2SPLUS()
 
 # read frame (raw ADC data)
 ret, frame = cap.read()
