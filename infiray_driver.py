@@ -141,6 +141,8 @@ def main():
         # output
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert opencv bgr to rgb for the v4l2 pixelformat
         written = os.write(videooutput, frame.data) # write frame to output device
+        print("Info: write frame to videooutput")
+
 
     cap.release()
     return 0
